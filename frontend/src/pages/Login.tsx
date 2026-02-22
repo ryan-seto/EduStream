@@ -101,7 +101,7 @@ export default function Login() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-cream-100">
       <div className="w-full max-w-md p-8 bg-white border border-warm-200 rounded-2xl shadow-sm">
-        <h1 className="text-2xl font-bold text-warm-800 text-center mb-2">EduStream AI</h1>
+        <h1 className="text-2xl font-bold text-warm-800 text-center mb-2">EduStream</h1>
         <p className="text-warm-400 text-center mb-8">
           Automated educational content generation
         </p>

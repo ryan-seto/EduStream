@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="EduStream AI",
+    title="EduStream",
     description="Automated educational content generation platform",
     version="0.1.0",
     lifespan=lifespan,
@@ -58,13 +58,13 @@ app.mount("/output", StaticFiles(directory=str(output_dir)), name="output")
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "EduStream AI"}
+    return {"status": "healthy", "service": "EduStream"}
 
 
 @app.get("/")
 async def root():
     return {
-        "message": "EduStream AI API",
+        "message": "EduStream API",
         "docs": "/docs",
         "health": "/health",
     }
