@@ -28,9 +28,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware - allow multiple localhost ports for development
+# CORS middleware
 cors_origins = [
     settings.frontend_url,
+    "https://ryan-seto.github.io",
+    "https://d1237w9fxeax88.cloudfront.net",
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:5175",
