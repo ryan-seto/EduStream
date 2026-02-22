@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.database import get_db
+from app.models.user import User
 from app.models.content import Content, ContentStatus, Topic, Schedule, ScheduleStatus
 from app.api.deps import get_optional_user
 

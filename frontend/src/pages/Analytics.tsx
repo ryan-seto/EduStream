@@ -190,22 +190,22 @@ export default function Analytics() {
         </div>
       </div>
 
-      {/* Impressions Placeholder + Content Type Breakdown */}
+      {/* X Engagement — Coming Soon */}
       <div className="grid grid-cols-3 gap-6 mb-8">
         <div className="bg-white border border-warm-200 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-warm-700 mb-1">Total Impressions</h3>
-          <p className="text-3xl font-bold text-warm-800 mb-1">--</p>
-          <p className="text-xs text-warm-400">Connect X API for live data</p>
+          <p className="text-3xl font-bold text-warm-300 mb-1">--</p>
+          <p className="text-xs text-warm-400">Coming soon</p>
         </div>
         <div className="bg-white border border-warm-200 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-warm-700 mb-1">Avg Engagement</h3>
-          <p className="text-3xl font-bold text-warm-800 mb-1">--</p>
-          <p className="text-xs text-warm-400">Connect X API for live data</p>
+          <p className="text-3xl font-bold text-warm-300 mb-1">--</p>
+          <p className="text-xs text-warm-400">Coming soon</p>
         </div>
         <div className="bg-white border border-warm-200 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-warm-700 mb-1">Top Post</h3>
-          <p className="text-3xl font-bold text-warm-800 mb-1">--</p>
-          <p className="text-xs text-warm-400">Connect X API for live data</p>
+          <p className="text-3xl font-bold text-warm-300 mb-1">--</p>
+          <p className="text-xs text-warm-400">Coming soon</p>
         </div>
       </div>
 

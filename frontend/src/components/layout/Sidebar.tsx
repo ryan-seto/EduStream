@@ -70,7 +70,7 @@ export default function Sidebar() {
       <div className="flex flex-col h-full">
         {/* Brand */}
         <div className="px-6 py-5">
-          <h1 className="text-lg font-bold text-warm-800">EduStream AI</h1>
+          <h1 className="text-lg font-bold text-warm-800">EduStream</h1>
           <p className="text-xs text-warm-400 mt-0.5">Content Dashboard</p>
         </div>
 

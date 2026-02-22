@@ -95,14 +95,8 @@ function ContentCard({ content, onDelete, onPublish, onQueue, isPublishing, isQu
           </button>
         )}
 
-        <div className="flex justify-between items-start mb-2 pr-6">
-          <h3 className="font-medium text-warm-800 text-sm">{content.topic?.name || 'Untitled'}</h3>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 text-xs rounded-full bg-cream-200 text-warm-500">
-              {content.content_type}
-            </span>
-            <StatusDot status={content.status} />
-          </div>
+        <div className="flex justify-end mb-2 pr-6">
+          <StatusDot status={content.status} />
         </div>
 
         {content.status === 'failed' && content.error_message && (
@@ -139,18 +133,18 @@ function ContentCard({ content, onDelete, onPublish, onQueue, isPublishing, isQu
           <p className="text-sm text-warm-400 italic">Generating script...</p>
         ) : null}
 
-        <div className="mt-3 flex justify-between items-center text-xs text-warm-400">
-          <span>{content.topic?.category || 'No category'}</span>
-          <span>{new Date(content.created_at).toLocaleDateString()}</span>
+        {scriptData?.tweet_text && (
+          <p className="text-xs text-warm-400 italic mt-2 px-1 line-clamp-3">
+            "{scriptData.tweet_text}"
+          </p>
+        )}
+
+        <div className="mt-3 text-xs text-warm-400 text-right">
+          {new Date(content.created_at).toLocaleDateString()}
         </div>
 
         {canPublish && isAdmin && (
           <div className="mt-3">
-            {scriptData?.tweet_text && (
-              <p className="text-xs text-warm-400 italic mb-2 px-1">
-                "{scriptData.tweet_text}"
-              </p>
-            )}
             <div className="flex gap-2">
               <button
                 onClick={() => onPublish(content.id)}
