@@ -1,0 +1,47 @@
+# FastAPI
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# Database
+sqlalchemy==2.0.25
+alembic==1.13.1
+asyncpg==0.29.0
+
+# Celery & Redis
+celery==5.3.6
+redis==5.0.1
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+authlib==1.3.0
+
+# AI - Google Gemini & Anthropic Claude
+google-generativeai==0.3.2
+anthropic==0.40.0
+
+# Text-to-Speech
+edge-tts==6.1.9
+gTTS==2.5.0
+
+# Diagrams & Video
+matplotlib==3.8.2
+numpy==1.26.3
+moviepy==1.0.3
+ffmpeg-python==0.2.0
+Pillow==10.2.0
+
+# Config
+python-dotenv==1.0.0
+pydantic-settings==2.1.0
+
+# AWS
+boto3==1.34.0
+
+# Social Media
+tweepy==4.14.0
+
+# Utils
+httpx==0.26.0
+aiofiles==23.2.1
