@@ -72,12 +72,17 @@ async def run_generation_pipeline(
     content_id: int,
     topic_name: str,
     category: str,
-    description: str | None
+    description: str | None,
+    batch_picked_ids: list[str] | None = None,
 ):
     """
     Full generation pipeline:
     1. Generate script with AI
     2. Generate diagram
+
+    Args:
+        batch_picked_ids: Shared mutable list for batch coordination.
+            Each item appends its chosen template_id so later items avoid it.
     """
     async with async_session_maker() as db:
         try:
@@ -98,6 +103,10 @@ async def run_generation_pipeline(
                 if isinstance(sd, dict) and sd.get("template_id"):
                     recent_template_ids.append(sd["template_id"])
 
+            # Include template IDs already picked by earlier batch items
+            if batch_picked_ids:
+                recent_template_ids = list(batch_picked_ids) + recent_template_ids
+
             # Step 1: Generate script with AI
             script_data = await ai_generator.generate_problem_script(
                 topic=topic_name,
@@ -105,6 +114,10 @@ async def run_generation_pipeline(
                 description=description,
                 recent_template_ids=recent_template_ids,
             )
+
+            # Track this pick so later batch items avoid it
+            if batch_picked_ids is not None and script_data.get("template_id"):
+                batch_picked_ids.append(script_data["template_id"])
 
             content.script_data = script_data
             content.script_text = script_data.get("hook_text", "") + " " + " ".join(
@@ -173,6 +186,9 @@ async def generate_batch(
             detail="Maximum 30 topics per batch",
         )
 
+    # Shared list so batch items coordinate and avoid picking the same template
+    batch_picked_ids: list[str] = []
+
     responses = []
     for topic_request in request.topics:
         topic = await _get_or_create_topic(
@@ -186,6 +202,7 @@ async def generate_batch(
             topic_request.topic_name,
             topic_request.category,
             topic_request.description,
+            batch_picked_ids,
         )
 
         responses.append(
