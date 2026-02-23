@@ -857,8 +857,8 @@ class DiagramGenerator:
         fig, ax = plt.subplots(figsize=(PHONE_WIDTH, PHONE_HEIGHT), facecolor=self.bg_color)
         ax.set_facecolor(self.bg_color)
 
-        # Diagram center
-        center_y = 0.55
+        # Diagram center (raised to reduce gap from title)
+        center_y = 0.68
         rod_left = 0.12
         rod_right = 0.62
         rod_height = 0.07
@@ -963,7 +963,7 @@ class DiagramGenerator:
         fig, ax = plt.subplots(figsize=(PHONE_WIDTH, PHONE_HEIGHT), facecolor=self.bg_color)
         ax.set_facecolor(self.bg_color)
 
-        center_y = 0.55
+        center_y = 0.68
 
         # Parse parameters from description
         f_match = re.search(r'(?:force|F)\s*(?:of\s+)?=?\s*(\d+(?:\.\d+)?)\s*(kN|N)', description, re.IGNORECASE)
@@ -2033,7 +2033,7 @@ class DiagramGenerator:
             formula_gap = 0.12   # gap between load block bottom and formula center
             subtitle_gap = 0.06  # gap from formula center to MA subtitle
             values_gap = 0.12    # gap from formula center to values text
-            top_y = 0.85         # below 2-line title bottom (~0.87)
+            top_y = 0.80         # leave gap below 2-line title bottom (~0.87)
             bot_limit = 0.33     # just above option box tops (0.20 + 0.11)
 
             # Scale pulley size and offsets based on count
