@@ -15,6 +15,8 @@ type QueueItem = {
   topic: string
   status: 'queued' | 'generating' | 'ready' | 'failed'
   id?: number
+  hookText?: string
+  tweetText?: string
 }
 
 // Scenario categories matching the backend scenario pool
@@ -113,7 +115,12 @@ export default function Generate() {
         const status = await generateApi.status(item.id)
         setResults(prev => prev.map(r =>
           r.id === item.id
-            ? { ...r, status: status.status as QueueItem['status'] }
+            ? {
+                ...r,
+                status: status.status as QueueItem['status'],
+                hookText: status.script_data?.hook_text,
+                tweetText: status.script_data?.tweet_text,
+              }
             : r
         ))
         if (status.status === 'ready' || status.status === 'failed') {
@@ -333,7 +340,16 @@ export default function Generate() {
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {[...results].reverse().map((result, i) => (
               <div key={i} className="flex justify-between items-center p-3 bg-white border border-warm-200 rounded-lg">
-                <span className="text-sm text-warm-700 truncate mr-4">{result.topic}</span>
+                <div className="flex-1 min-w-0 mr-4">
+                  <span className="text-sm text-warm-700 truncate block">
+                    {result.hookText || result.topic || 'Random Problem'}
+                  </span>
+                  {result.tweetText && (
+                    <span className="text-xs text-warm-400 italic truncate block mt-0.5">
+                      "{result.tweetText}"
+                    </span>
+                  )}
+                </div>
                 <StatusBadge status={result.status} />
               </div>
             ))}
