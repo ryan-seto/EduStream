@@ -166,26 +166,31 @@ export default function Generate() {
   }
 
   const handleGenerateRandom = () => {
-    const randomCat = SCENARIO_CATEGORIES[Math.floor(Math.random() * SCENARIO_CATEGORIES.length)]
     singleMutation.mutate({
-      topic_name: randomCat.tags,
-      category: 'engineering',
-      description: randomCat.tags,
+      topic_name: '',
+      category: '',
+      description: '',
     })
   }
 
   const handleBatchGenerate = () => {
     const topics: GenerateRequest[] = []
     for (let i = 0; i < batchCount; i++) {
-      // Pick from selected category or random
-      const cat = selectedCategory
-        ? SCENARIO_CATEGORIES.find(c => c.id === selectedCategory)!
-        : SCENARIO_CATEGORIES[Math.floor(Math.random() * SCENARIO_CATEGORIES.length)]
-      topics.push({
-        topic_name: cat.tags,
-        category: 'engineering',
-        description: cat.tags,
-      })
+      if (selectedCategory) {
+        const cat = SCENARIO_CATEGORIES.find(c => c.id === selectedCategory)!
+        topics.push({
+          topic_name: cat.tags,
+          category: 'engineering',
+          description: cat.tags,
+        })
+      } else {
+        // Random mix — let backend pick from full pool with LRU
+        topics.push({
+          topic_name: '',
+          category: '',
+          description: '',
+        })
+      }
     }
     batchMutation.mutate(topics)
   }
