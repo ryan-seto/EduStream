@@ -69,6 +69,7 @@ class AIGenerator:
         topic: str,
         category: str = "engineering",
         description: str | None = None,
+        recent_template_ids: list[str] | None = None,
     ) -> dict:
         """
         Generate a problem/quiz script for short-form video.
@@ -82,6 +83,7 @@ class AIGenerator:
                 topic=topic,
                 category=category,
                 description=description or "",
+                recent_template_ids=recent_template_ids,
             )
             logger.info("Used scenario pool for: %s", topic)
             return result

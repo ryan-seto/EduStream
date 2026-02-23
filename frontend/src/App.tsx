@@ -2,7 +2,6 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Generate from './pages/Generate'
-import Topics from './pages/Topics'
 import Analytics from './pages/Analytics'
 import Sidebar from './components/layout/Sidebar'
 import ProtectedRoute from './components/layout/ProtectedRoute'
@@ -52,17 +51,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/topics"
-        element={
-          <ProtectedRoute adminOnly>
-            <AppLayout>
-              <Topics />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )

@@ -9,7 +9,7 @@ from sqlalchemy import select, func
 
 from app.database import get_db
 from app.models.user import User
-from app.models.content import Content, ContentStatus, Schedule, ScheduleStatus, Platform
+from app.models.content import Content, ContentStatus, Schedule, ScheduleStatus, Platform, AppSetting
 from app.api.deps import get_current_active_user, get_optional_user
 from app.services.twitter_service import twitter_service
 from app.config import get_settings
@@ -17,6 +17,15 @@ from app.config import get_settings
 settings = get_settings()
 
 router = APIRouter()
+
+
+async def _get_publish_interval(db: AsyncSession) -> int:
+    """Get publish interval from DB, falling back to env var."""
+    result = await db.execute(
+        select(AppSetting).where(AppSetting.key == "publish_interval_minutes")
+    )
+    setting = result.scalar_one_or_none()
+    return int(setting.value) if setting else settings.sqs_publish_interval_minutes
 
 
 def _build_caption(content: Content, custom_caption: str | None = None) -> str:
@@ -254,8 +263,9 @@ async def queue_content(
             .where(Schedule.status == ScheduleStatus.PENDING)
         )
         last_time = last_pending.scalar()
+        interval_mins = await _get_publish_interval(db)
         if last_time:
-            scheduled_at = last_time + timedelta(minutes=settings.sqs_publish_interval_minutes)
+            scheduled_at = last_time + timedelta(minutes=interval_mins)
         else:
             scheduled_at = datetime.utcnow() + timedelta(minutes=5)
 
@@ -322,7 +332,8 @@ async def queue_all_ready(
         .where(Schedule.status == ScheduleStatus.PENDING)
     )
     last_time = last_pending.scalar() or datetime.utcnow()
-    interval = timedelta(minutes=settings.sqs_publish_interval_minutes)
+    interval_mins = await _get_publish_interval(db)
+    interval = timedelta(minutes=interval_mins)
 
     from app.services.sqs_service import sqs_service
     queued_count = 0

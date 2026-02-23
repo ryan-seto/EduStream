@@ -1,7 +1,6 @@
 import axios from 'axios'
 import type {
   User,
-  Topic,
   Content,
   AuthToken,
   GenerateRequest,
@@ -57,23 +56,6 @@ export const authApi = {
   },
 }
 
-// Topics
-export const topicsApi = {
-  list: async (): Promise<Topic[]> => {
-    const response = await api.get('/content/topics')
-    return response.data
-  },
-
-  create: async (data: Omit<Topic, 'id' | 'created_at'>): Promise<Topic> => {
-    const response = await api.post('/content/topics', data)
-    return response.data
-  },
-
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/content/topics/${id}`)
-  },
-}
-
 // Content
 export const contentApi = {
   list: async (status?: string): Promise<Content[]> => {
@@ -114,6 +96,16 @@ export const generateApi = {
     error_message: string | null
   }> => {
     const response = await api.get(`/generate/status/${contentId}`)
+    return response.data
+  },
+
+  getSettings: async (): Promise<{ publish_interval_minutes: number }> => {
+    const response = await api.get('/generate/settings')
+    return response.data
+  },
+
+  updateSettings: async (data: { publish_interval_minutes: number }): Promise<{ publish_interval_minutes: number }> => {
+    const response = await api.put('/generate/settings', data)
     return response.data
   },
 }

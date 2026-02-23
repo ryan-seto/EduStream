@@ -1,7 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { generateApi } from '../api/client'
 import type { GenerateRequest } from '../types'
+
+const INTERVAL_OPTIONS = [
+  { label: '1 hour', value: 60 },
+  { label: '2 hours', value: 120 },
+  { label: '6 hours', value: 360 },
+  { label: '12 hours', value: 720 },
+  { label: '24 hours', value: 1440 },
+]
 
 type QueueItem = {
   topic: string
@@ -83,6 +91,16 @@ export default function Generate() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [batchCount, setBatchCount] = useState(5)
   const [results, setResults] = useState<QueueItem[]>([])
+
+  const { data: settingsData } = useQuery({
+    queryKey: ['generate-settings'],
+    queryFn: () => generateApi.getSettings(),
+  })
+
+  const intervalMutation = useMutation({
+    mutationFn: (minutes: number) => generateApi.updateSettings({ publish_interval_minutes: minutes }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['generate-settings'] }),
+  })
 
   // Poll for status updates on queued/generating items
   const pollStatuses = useCallback(async () => {
@@ -177,10 +195,26 @@ export default function Generate() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-warm-800 mb-2">Generate Content</h1>
-      <p className="text-warm-400 mb-8">
-        Each generation creates a unique problem with randomized values and answer options.
-      </p>
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-warm-800 mb-2">Generate Content</h1>
+          <p className="text-warm-400">
+            Each generation creates a unique problem with randomized values and answer options.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 bg-white border border-warm-200 rounded-lg px-3 py-2">
+          <span className="text-xs text-warm-400 whitespace-nowrap">Post every</span>
+          <select
+            value={settingsData?.publish_interval_minutes || 720}
+            onChange={(e) => intervalMutation.mutate(Number(e.target.value))}
+            className="text-sm font-medium text-warm-700 bg-transparent border-none focus:outline-none cursor-pointer"
+          >
+            {INTERVAL_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       <div className="flex gap-2 mb-6">
         <button

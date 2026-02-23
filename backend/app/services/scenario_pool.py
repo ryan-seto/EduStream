@@ -132,13 +132,19 @@ class ScenarioPool:
         self.templates.extend(_concept_templates())
         logger.info("Registered %d templates", len(self.templates))
 
-    def generate(self, topic: str = "", category: str = "", description: str = "") -> dict:
-        """Select a template and generate a randomized problem."""
+    def generate(self, topic: str = "", category: str = "", description: str = "",
+                 recent_template_ids: list[str] | None = None) -> dict:
+        """Select a template and generate a randomized problem.
+
+        Args:
+            recent_template_ids: Template IDs used recently. These will be
+                deprioritized so content cycles through all templates before repeating.
+        """
         candidates = self._match_templates(topic, category, description)
         if not candidates:
             candidates = self.templates
 
-        template = random.choice(candidates)
+        template = self._pick_template(candidates, recent_template_ids or [])
         logger.info("Selected template: %s", template.id)
 
         sampled = {name: p.sample() for name, p in template.params.items()}
@@ -197,7 +203,34 @@ class ScenarioPool:
             else:
                 result["tweet_text"] = _pick_tweet(_QUIZ_TWEETS)
 
+        result["template_id"] = template.id
         return result
+
+    def _pick_template(
+        self,
+        candidates: list[ScenarioTemplate],
+        recent_ids: list[str],
+    ) -> ScenarioTemplate:
+        """Pick a template, deprioritizing recently used ones.
+
+        Templates not in the recent list are strongly preferred. If all
+        candidates have been used recently, the least-recently-used one
+        is chosen (LRU behaviour).
+        """
+        if not recent_ids:
+            return random.choice(candidates)
+
+        # Prefer candidates that haven't been used recently
+        fresh = [t for t in candidates if t.id not in recent_ids]
+        if fresh:
+            return random.choice(fresh)
+
+        # All candidates were used recently — pick the one used longest ago (LRU)
+        id_to_recency = {tid: idx for idx, tid in enumerate(recent_ids)}
+        candidates_sorted = sorted(
+            candidates, key=lambda t: id_to_recency.get(t.id, -1)
+        )
+        return candidates_sorted[0]
 
     def _match_templates(self, topic: str, category: str, description: str) -> list[ScenarioTemplate]:
         search_text = f"{topic} {category} {description}".lower()

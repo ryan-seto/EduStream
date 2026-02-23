@@ -3,16 +3,18 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, desc
 
 from app.database import get_db, async_session_maker
 from app.models.user import User
-from app.models.content import Topic, Content, ContentStatus, ContentType
-from app.api.deps import get_current_active_user
+from app.models.content import Topic, Content, ContentStatus, ContentType, AppSetting
+from app.api.deps import get_current_active_user, require_admin, get_optional_user
+from app.config import get_settings
 from app.services.ai_generator import ai_generator
 from app.services.diagram_gen import diagram_generator
 
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 router = APIRouter()
 
@@ -84,11 +86,24 @@ async def run_generation_pipeline(
             if not content:
                 return
 
+            # Fetch recently used template IDs for content cycling (LRU)
+            recent_result = await db.execute(
+                select(Content.script_data)
+                .where(Content.script_data.isnot(None))
+                .order_by(desc(Content.created_at))
+                .limit(50)
+            )
+            recent_template_ids = []
+            for (sd,) in recent_result:
+                if isinstance(sd, dict) and sd.get("template_id"):
+                    recent_template_ids.append(sd["template_id"])
+
             # Step 1: Generate script with AI
             script_data = await ai_generator.generate_problem_script(
                 topic=topic_name,
                 category=category,
                 description=description,
+                recent_template_ids=recent_template_ids,
             )
 
             content.script_data = script_data
@@ -209,3 +224,48 @@ async def get_generation_status(
         "error_message": content.error_message,
         "script_data": content.script_data,
     }
+
+
+# ── Settings ───────────────────────────────────────────────────────────
+
+
+class UpdateSettingsRequest(BaseModel):
+    publish_interval_minutes: int
+
+
+@router.get("/settings")
+async def get_settings_endpoint(
+    db: AsyncSession = Depends(get_db),
+    _user: User | None = Depends(get_optional_user),
+):
+    result = await db.execute(
+        select(AppSetting).where(AppSetting.key == "publish_interval_minutes")
+    )
+    setting = result.scalar_one_or_none()
+    interval = int(setting.value) if setting else settings.sqs_publish_interval_minutes
+
+    return {"publish_interval_minutes": interval}
+
+
+@router.put("/settings")
+async def update_settings_endpoint(
+    data: UpdateSettingsRequest,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_admin),
+):
+    if data.publish_interval_minutes < 1:
+        raise HTTPException(status_code=400, detail="Interval must be at least 1 minute")
+
+    result = await db.execute(
+        select(AppSetting).where(AppSetting.key == "publish_interval_minutes")
+    )
+    setting = result.scalar_one_or_none()
+
+    if setting:
+        setting.value = str(data.publish_interval_minutes)
+    else:
+        setting = AppSetting(key="publish_interval_minutes", value=str(data.publish_interval_minutes))
+        db.add(setting)
+
+    await db.commit()
+    return {"publish_interval_minutes": data.publish_interval_minutes}
