@@ -292,6 +292,9 @@ export default function Dashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content'] })
     },
+    onError: (error: Error) => {
+      alert(`Failed to delete: ${error.message}`)
+    },
   })
 
   const publishMutation = useMutation({

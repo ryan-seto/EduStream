@@ -84,7 +84,7 @@ class Content(Base):
 
     # Relationships
     topic: Mapped["Topic"] = relationship(back_populates="contents")
-    schedules: Mapped[list["Schedule"]] = relationship(back_populates="content")
+    schedules: Mapped[list["Schedule"]] = relationship(back_populates="content", cascade="all, delete-orphan")
 
 
 class Schedule(Base):
