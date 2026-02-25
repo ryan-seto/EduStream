@@ -241,9 +241,17 @@ class DiagramGenerator:
         fig, ax = plt.subplots(figsize=(PHONE_WIDTH, PHONE_HEIGHT), facecolor=self.bg_color)
         ax.set_facecolor(self.bg_color)
 
-        # Adjust diagram position for answer options
-        diagram_y_offset = 0.15 if answer_options else 0
-        center_y = 0.55 + diagram_y_offset
+        # Adjust diagram position for answer options — each body type
+        # needs different vertical space above/below
+        if answer_options:
+            if body_type == "block_incline":
+                center_y = 0.70   # incline needs space below for ground
+            elif body_type == "bar":
+                center_y = 0.58   # bar has angled force arrows above
+            else:
+                center_y = 0.55   # particle/cables have arrows in all dirs
+        else:
+            center_y = 0.50
 
         if body_type == "cables":
             # Hanging weight from two cables
