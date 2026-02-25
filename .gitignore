@@ -30,6 +30,10 @@ yarn-error.log*
 *.swo
 .DS_Store
 
+# Keys / secrets
+keys/
+*.pem
+
 # Output files
 output/
 temp/

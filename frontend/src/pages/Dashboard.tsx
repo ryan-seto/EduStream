@@ -86,7 +86,7 @@ function ContentCard({ content, onDelete, onPublish, onQueue, isPublishing, isQu
         {isAdmin && (
           <button
             onClick={() => onDelete(content.id)}
-            className="absolute top-2 right-2 p-1.5 text-warm-400 hover:text-red-500 hover:bg-red-50 transition-all bg-white/90 rounded-lg shadow-sm border border-warm-200 hover:border-red-300"
+            className="absolute top-2 right-2 z-10 p-1.5 text-warm-400 hover:text-red-500 hover:bg-red-50 transition-all bg-white/90 rounded-lg shadow-sm border border-warm-200 hover:border-red-300"
             title="Discard"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

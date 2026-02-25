@@ -231,7 +231,7 @@ class DiagramGenerator:
         forces: list of dicts with keys: magnitude, angle (degrees), label
         body_type: "particle" (circle), "bar" (horizontal beam), "block_incline" (block on slope)
         """
-        if forces is None:
+        if not forces:
             forces = [
                 {"magnitude": 50, "angle": 0, "label": "F1 = 50N"},
                 {"magnitude": 30, "angle": 90, "label": "F2 = 30N"},
@@ -242,8 +242,8 @@ class DiagramGenerator:
         ax.set_facecolor(self.bg_color)
 
         # Adjust diagram position for answer options
-        diagram_y_offset = 0.1 if answer_options else 0
-        center_y = 0.5 + diagram_y_offset
+        diagram_y_offset = 0.15 if answer_options else 0
+        center_y = 0.55 + diagram_y_offset
 
         if body_type == "cables":
             # Hanging weight from two cables
@@ -830,8 +830,8 @@ class DiagramGenerator:
             label_y = block_cy + dy * 1.8
             # If pointing down (weight), offset label to the right to avoid ground overlap
             if force["angle"] == 270:
-                label_x = block_cx + 0.15
-                label_y = block_cy + dy * 1.0
+                label_x = block_cx + 0.18
+                label_y = block_cy + dy * 0.5
                 # Ensure label doesn't go off-screen
                 if label_x + 0.10 > 0.95:
                     label_x = 0.85
