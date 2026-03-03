@@ -94,6 +94,7 @@ export const generateApi = {
     has_audio: boolean
     has_video: boolean
     error_message: string | null
+    script_data?: { hook_text?: string; tweet_text?: string; [key: string]: unknown }
   }> => {
     const response = await api.get(`/generate/status/${contentId}`)
     return response.data
@@ -148,6 +149,11 @@ export const publishApi = {
 
   queueAll: async (): Promise<{ message: string; queued_count: number }> => {
     const response = await api.post('/publish/queue-all')
+    return response.data
+  },
+
+  requeueAll: async (): Promise<{ message: string; queued_count: number }> => {
+    const response = await api.post('/publish/requeue-all')
     return response.data
   },
 

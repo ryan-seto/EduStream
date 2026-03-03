@@ -342,6 +342,17 @@ export default function Dashboard() {
     },
   })
 
+  const requeueAllMutation = useMutation({
+    mutationFn: () => publishApi.requeueAll(),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['content'] })
+      alert(data.message)
+    },
+    onError: (error: Error) => {
+      alert(`Failed to re-queue: ${error.message}`)
+    },
+  })
+
   const handleDelete = (id: number) => {
     if (confirm('Delete this content?')) {
       deleteMutation.mutate(id)
@@ -480,11 +491,26 @@ export default function Dashboard() {
             if (queuedItems.length === 0) return null
             return (
               <div className="mb-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <h2 className="text-lg font-semibold text-warm-800">Scheduled</h2>
-                  <span className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
-                    {queuedItems.length} approved
-                  </span>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-lg font-semibold text-warm-800">Scheduled</h2>
+                    <span className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
+                      {queuedItems.length} approved
+                    </span>
+                  </div>
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        if (confirm(`Re-queue ${queuedItems.length} scheduled items? This will create fresh SQS messages with new timing.`)) {
+                          requeueAllMutation.mutate()
+                        }
+                      }}
+                      disabled={requeueAllMutation.isPending}
+                      className="px-3 py-1.5 text-xs font-medium border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg transition-colors"
+                    >
+                      {requeueAllMutation.isPending ? 'Re-queuing...' : 'Re-queue All'}
+                    </button>
+                  )}
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   {queuedItems.map((item) => (

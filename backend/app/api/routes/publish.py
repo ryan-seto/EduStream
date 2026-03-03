@@ -369,6 +369,77 @@ async def queue_all_ready(
     }
 
 
+@router.post("/requeue-all")
+async def requeue_all(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Re-queue all QUEUED content whose SQS messages may have been lost.
+
+    Deletes stale PENDING schedules, creates fresh ones, and re-sends to SQS.
+    """
+    if not settings.use_sqs:
+        raise HTTPException(status_code=400, detail="SQS is not configured.")
+
+    # Find all content currently marked as QUEUED
+    result = await db.execute(
+        select(Content)
+        .where(Content.status == ContentStatus.QUEUED)
+        .where(Content.diagram_path.isnot(None))
+        .order_by(Content.created_at.asc())
+    )
+    queued_content = result.scalars().all()
+
+    if not queued_content:
+        return {"message": "No queued content to re-queue", "queued_count": 0}
+
+    # Delete old PENDING schedules for these items
+    content_ids = [c.id for c in queued_content]
+    old_schedules = await db.execute(
+        select(Schedule)
+        .where(Schedule.content_id.in_(content_ids))
+        .where(Schedule.status == ScheduleStatus.PENDING)
+    )
+    for s in old_schedules.scalars().all():
+        await db.delete(s)
+
+    # Build fresh schedule starting from now
+    interval_mins = await _get_publish_interval(db)
+    interval = timedelta(minutes=interval_mins)
+    base_time = datetime.utcnow()
+
+    from app.services.sqs_service import sqs_service
+    requeued = 0
+
+    for content in queued_content:
+        scheduled_at = base_time + interval * (requeued + 1)
+        caption = _build_caption(content)
+
+        sqs_service.enqueue_publish(
+            content_id=content.id,
+            platform="twitter",
+            caption=caption,
+            image_path=content.diagram_path,
+            scheduled_at=scheduled_at,
+        )
+
+        schedule = Schedule(
+            content_id=content.id,
+            platform=Platform.TWITTER,
+            scheduled_at=scheduled_at,
+            status=ScheduleStatus.PENDING,
+        )
+        db.add(schedule)
+        requeued += 1
+
+    await db.commit()
+
+    return {
+        "message": f"Re-queued {requeued} items for publishing",
+        "queued_count": requeued,
+    }
+
+
 @router.get("/queue-status")
 async def get_queue_status(
     db: AsyncSession = Depends(get_db),
