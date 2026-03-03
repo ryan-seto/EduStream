@@ -96,6 +96,18 @@ async def process_message(message: dict) -> bool:
                         content_id, scheduled_at_str, seconds_until, delay)
             return False  # Don't delete — will become visible again near scheduled time
 
+    # Check if content still exists in DB (may have been deleted)
+    from app.database import async_session_maker
+    from app.models.content import Content
+    from sqlalchemy import select
+
+    async with async_session_maker() as session:
+        result = await session.execute(select(Content).where(Content.id == content_id))
+        content = result.scalar_one_or_none()
+        if not content:
+            logger.info("Content %d no longer exists, removing from queue", content_id)
+            return True  # Delete message from queue
+
     logger.info("Publishing content %d to %s...", content_id, platform)
 
     if platform != "twitter":
