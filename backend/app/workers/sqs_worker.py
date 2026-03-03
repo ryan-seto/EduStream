@@ -86,9 +86,15 @@ async def process_message(message: dict) -> bool:
         now = datetime.utcnow()
         if scheduled_at > now:
             seconds_until = (scheduled_at - now).total_seconds()
-            logger.info("Content %d scheduled for %s (%.0fs from now), skipping",
-                        content_id, scheduled_at_str, seconds_until)
-            return False  # Don't delete — will become visible again after timeout
+            # Extend visibility timeout so SQS won't redeliver until close to scheduled time
+            delay = min(int(seconds_until) + 10, 43200)  # max 12 hours
+            try:
+                sqs_service.change_visibility(message["receipt_handle"], delay)
+            except Exception as e:
+                logger.warning("Failed to change visibility: %s", e)
+            logger.info("Content %d scheduled for %s (%.0fs from now), hidden for %ds",
+                        content_id, scheduled_at_str, seconds_until, delay)
+            return False  # Don't delete — will become visible again near scheduled time
 
     logger.info("Publishing content %d to %s...", content_id, platform)
 

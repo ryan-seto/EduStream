@@ -103,6 +103,14 @@ class SQSService:
             ReceiptHandle=receipt_handle,
         )
 
+    def change_visibility(self, receipt_handle: str, timeout: int) -> None:
+        """Change message visibility timeout (max 43200 = 12 hours)."""
+        self.client.change_message_visibility(
+            QueueUrl=settings.sqs_queue_url,
+            ReceiptHandle=receipt_handle,
+            VisibilityTimeout=min(timeout, 43200),
+        )
+
     def get_queue_attributes(self) -> dict:
         """Get queue stats (approximate message count, etc.)."""
         response = self.client.get_queue_attributes(
